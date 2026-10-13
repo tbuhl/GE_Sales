@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import json
 import math
 import re
 import xml.etree.ElementTree as ET
@@ -16,6 +17,9 @@ import plotly.graph_objects as go
 import requests
 import streamlit as st
 
+from intel.common import load_quarterly_results
+from intel.ui import get_intel, render_executive_briefing, render_intelligence_lab
+
 
 APP_TITLE = "GE Wind Sales Intelligence Dashboard"
 DATA_DIR = Path("data")
@@ -23,6 +27,7 @@ DATA_CACHE_DIR = Path("data_cache")
 PARSED_DATA_FILE = DATA_CACHE_DIR / "ge_parsed_data.pkl"
 STOCK_MONTHLY_FILE = DATA_DIR / "ge_stock_monthly.json"
 MARKET_MONTHLY_FILE = DATA_DIR / "market_prices_monthly.json"
+SUPPLEMENT_FILE = DATA_DIR / "ge_orders_supplement.json"
 
 NEWS_FEEDS = [
     {
@@ -564,6 +569,20 @@ div[data-testid="stMetric"] div[data-testid="stMetricLabel"] {{
 div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
   color: {metric_value_color} !important;
   letter-spacing: -0.01em;
+}}
+
+.st-key-header_kpis div[data-testid="stMetricValue"] {{
+  font-size: 1.5rem;
+}}
+
+.st-key-header_kpis div[data-testid="stMetricValue"] > div,
+.st-key-header_kpis div[data-testid="stMetricDelta"] > div {{
+  overflow: visible !important;
+  text-overflow: clip !important;
+}}
+
+.st-key-header_kpis div[data-testid="stMetricDelta"] > div {{
+  white-space: normal !important;
 }}
 
 div[data-testid="stMetricDelta"] {{
@@ -1464,6 +1483,65 @@ def parse_market_monthly_json(market_path: Path) -> pd.DataFrame:
     return market[["date", "steel_hrc_usd_per_short_ton", "copper_hg_usd_per_lb"]].copy()
 
 
+def merge_press_orders(orders: pd.DataFrame, platforms: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Append the orders announced after the workbook's last row (data/ge_orders_supplement.json).
+
+    Rows already in the workbook (same date and size) are skipped. ``booked_year`` / ``booked_q`` hold the booking quarter
+    when the press release states it (announcements can trail the booking by months).
+    """
+    if not SUPPLEMENT_FILE.exists() or orders.empty:
+        return orders, platforms
+    try:
+        rows = json.loads(SUPPLEMENT_FILE.read_text(encoding="utf-8")).get("orders", [])
+    except (OSError, json.JSONDecodeError):
+        return orders, platforms
+    existing = {(pd.Timestamp(d).normalize(), round(float(m), 1)) for d, m in zip(orders["order_date"], orders["size_mw"]) if pd.notna(d)}
+    counters: dict[int, int] = {}
+    for oid in orders["order_id"]:
+        year, n = str(oid).split("_")
+        counters[int(year)] = max(counters.get(int(year), -1), int(n))
+    new_orders, new_platforms = [], []
+    for r in sorted(rows, key=lambda x: x["date"]):
+        date = pd.Timestamp(r["date"]).normalize()
+        size = float(r["size_mw"])
+        if (date, round(size, 1)) in existing:
+            continue
+        year = int(date.year)
+        counters[year] = counters.get(year, -1) + 1
+        order_id = f"{year}_{counters[year]:04d}"
+        country = normalize_country(r.get("country"))
+        region, continent = country_region_continent(country)
+        platform = normalize_platform(r.get("platform"))
+        qty = float(r["turbines"]) if r.get("turbines") else np.nan
+        rating = float(r["mw_rating"]) if r.get("mw_rating") else np.nan
+        rotor = float(r["rotor_m"]) if r.get("rotor_m") else np.nan
+        svc = float(r["service_years"]) if r.get("service_years") else np.nan
+        booked = str(r.get("booked") or "")
+        common = {
+            "country": country, "region": region, "continent": continent, "service_scheme": "Unknown", "service_time_years": svc,
+            "customer": normalize_customer(r.get("customer")), "delivery_q": np.nan, "delivery_year": np.nan, "delivery_days": np.nan,
+        }
+        new_orders.append(
+            {
+                "order_id": order_id, "sheet_name": "press releases", "sheet_year": year, "order_date": date, "order_year": year,
+                "order_quarter": int(date.quarter), **common, "size_mw": size, "primary_platform": platform,
+                "platform_mw_sum": size if platform != "Unknown" else np.nan, "turbines_qty_sum": qty,
+                "mw_gap": 0.0 if platform != "Unknown" else np.nan, "delivery_time_years": np.nan,
+                "booked_year": float(booked[:4]) if booked else np.nan, "booked_q": float(booked[-1]) if booked else np.nan,
+            }
+        )
+        new_platforms.append(
+            {
+                "order_id": order_id, "sheet_year": year, "order_year": year, "order_date": date, **common, "order_size_mw": size,
+                "slot": 1, "platform": platform, "turbines_qty": qty, "rotor_m": rotor, "mw_rating": rating,
+                "slot_mw": size, "delivery_time_years": np.nan,
+            }
+        )
+    if not new_orders:
+        return orders, platforms
+    return pd.concat([orders, pd.DataFrame(new_orders)], ignore_index=True), pd.concat([platforms, pd.DataFrame(new_platforms)], ignore_index=True)
+
+
 @st.cache_data(show_spinner=False)
 def load_data(cache_key: str, workbook_path: str) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     cache_file = PARSED_DATA_FILE
@@ -1483,6 +1561,7 @@ def load_data(cache_key: str, workbook_path: str) -> tuple[pd.DataFrame, pd.Data
     workbook = Path(workbook_path)
     economy = parse_economy_sheet(workbook)
     orders, platforms, unannounced = parse_oi_sheets(workbook)
+    orders, platforms = merge_press_orders(orders, platforms)
 
     try:
         cache_file.parent.mkdir(parents=True, exist_ok=True)
@@ -1871,6 +1950,7 @@ def latest_data_handled_text(
     unannounced: pd.DataFrame,
     stock_monthly: pd.DataFrame,
     market_monthly: pd.DataFrame,
+    reported_label: str | None = None,
 ) -> str:
     economy_max_year = int(economy["year"].max()) if economy is not None and not economy.empty else None
     orders_max_date = pd.to_datetime(orders["order_date"], errors="coerce").max() if orders is not None and not orders.empty else pd.NaT
@@ -1892,7 +1972,7 @@ def latest_data_handled_text(
 
     return (
         f"Latest handled data -> Economy: {econ_txt}; Orders: {orders_txt}; "
-        f"Unannounced: {unann_txt}; Stock: {stock_txt}; Steel/Copper: {market_txt}. "
+        f"Quarterly Wind results: {reported_label or unann_txt}; Stock (GE Vernova): {stock_txt}; Steel/Copper: {market_txt}. "
         "Not a live feed; updates occur when source files/feeds are refreshed."
     )
 
@@ -1941,9 +2021,9 @@ def render_header_metrics(orders: pd.DataFrame, platforms: pd.DataFrame, unannou
     m1, m2, m3, m4, m5, m6 = st.columns(6)
     m1.metric("Orders", int_fmt(total_orders))
     m2.metric(
-        "Ordered MW",
+        "Announced MW",
         mw_fmt(total_mw),
-        delta=f"hereof unannounced {unannounced_mw:,.0f} MW",
+        delta=f"largest order {orders['size_mw'].max():,.0f} MW",
         delta_color="off",
     )
     m3.metric("Platform-Mapped MW", mw_fmt(total_platform_mw))
@@ -1965,6 +2045,11 @@ def render_header_metrics(orders: pd.DataFrame, platforms: pd.DataFrame, unannou
 def render_information_page() -> None:
     st.subheader("Information")
     st.markdown("**Data source**")
+    st.write(
+        "Wind-segment orders, revenue and segment EBITDA by quarter come from GE Vernova's earnings releases (`data/ge_quarterly_results.json`, USD). "
+        "Orders announced after the workbook's last row come from GE Vernova press releases (`data/ge_orders_supplement.json`). "
+        "The share-price series is GE Vernova (GEV), listed April 2024."
+    )
     st.write("This dashboard is build on public available data.")
 
     st.markdown("**How to use and navigate**")
@@ -3641,7 +3726,8 @@ def main() -> None:
         economy, orders, platforms, unannounced = cached
     else:
         stat = workbook.stat()
-        cache_key = f"{workbook.resolve()}::{stat.st_mtime_ns}::{stat.st_size}"
+        supplement_sig = SUPPLEMENT_FILE.stat().st_mtime_ns if SUPPLEMENT_FILE.exists() else 0
+        cache_key = f"{workbook.resolve()}::{stat.st_mtime_ns}::{stat.st_size}::{supplement_sig}"
         try:
             economy, orders, platforms, unannounced = load_data(cache_key, str(workbook))
         except ValueError as exc:
@@ -3664,7 +3750,9 @@ def main() -> None:
     else:
         market_cache_key = "missing_market_file"
     market_monthly = load_market_data(market_cache_key, str(MARKET_MONTHLY_FILE))
-    st.caption(latest_data_handled_text(economy, orders, unannounced, stock_monthly, market_monthly))
+    results = load_quarterly_results()
+    reported_label = str(results["quarterly"].iloc[-1]["label"]) if results else None
+    st.caption(latest_data_handled_text(economy, orders, unannounced, stock_monthly, market_monthly, reported_label))
 
     if orders.empty:
         st.error("No order intake records were parsed from the yearly order sheets.")
@@ -3677,10 +3765,15 @@ def main() -> None:
         st.warning("Filters returned no rows. Adjust the sidebar filters.")
         return
 
-    render_header_metrics(orders_f, platforms_f, unannounced_f)
+    intel = get_intel(economy, orders, platforms, stock_monthly, market_monthly)
+
+    with st.container(key="header_kpis"):
+        render_header_metrics(orders_f, platforms_f, unannounced_f)
     tabs = st.tabs(
         [
-            "Overall Economics",
+            "Economy Summary",
+            "Executive Briefing",
+            "Intelligence Lab",
             "Year-by-Year Overview",
             "Quarterly Analytics",
             "Across Years",
@@ -3695,20 +3788,24 @@ def main() -> None:
     with tabs[0]:
         render_overall_economics(economy, stock_monthly, market_monthly)
     with tabs[1]:
-        render_yearly_overview(orders_f, platforms_f, unannounced_f)
+        render_executive_briefing(intel)
     with tabs[2]:
-        render_quarterly_analytics(orders_f, unannounced_f)
+        render_intelligence_lab(intel, orders_f, platforms_f)
     with tabs[3]:
-        render_across_years(orders_f, platforms_f)
+        render_yearly_overview(orders_f, platforms_f, unannounced_f)
     with tabs[4]:
-        render_platform_lens(platforms_f)
+        render_quarterly_analytics(orders_f, unannounced_f)
     with tabs[5]:
-        render_country_lens(orders_f, platforms_f)
+        render_across_years(orders_f, platforms_f)
     with tabs[6]:
-        render_latest_news()
+        render_platform_lens(platforms_f)
     with tabs[7]:
-        render_latest_patents()
+        render_country_lens(orders_f, platforms_f)
     with tabs[8]:
+        render_latest_news()
+    with tabs[9]:
+        render_latest_patents()
+    with tabs[10]:
         render_information_page()
 
 

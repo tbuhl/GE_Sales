@@ -1,0 +1,108 @@
+{
+ "description": "GE Vernova wind orders announced after the last row of GE_data.xls (23 Dec 2025), from GE Vernova press releases. size_mw is the capacity stated in the release (or turbines x rated MW where the release gives only the turbine count). 'booked' is the quarter the release says the order was booked, where stated.",
+ "orders_checked_through": "2026-10-13",
+ "orders_check_note": "Checked GE Vernova's press releases on 13 Oct 2026. The 5 Feb 2026 release on 1.1 GW of US repower orders booked in 2025 gives no per-order detail and is not in the list. No other wind order announcements were found for January 2026 or May 2026.",
+ "unlisted_bookings": [
+  {
+   "year": 2025,
+   "mw": 1100.0,
+   "what": "US onshore repower orders (nacelles and drive trains from Pensacola, Florida), announced 5 Feb 2026 without customers or per-order sizes",
+   "source": "https://www.gevernova.com/news/press-releases/ge-vernova-bolsters-us-onshore-wind-fleet-1-gw-repower-orders-2025"
+  }
+ ],
+ "orders": [
+  {
+   "date": "2026-03-04",
+   "country": "Italy",
+   "customer": "IVPC Group",
+   "size_mw": 103.7,
+   "platform": "GE6.1-158",
+   "turbines": 17,
+   "rotor_m": 158,
+   "mw_rating": 6.1,
+   "booked": "2025Q4",
+   "note": "Fortore wind farm (Benevento); awarded in the December 2025 GSE auction; deliveries from Q2 2027; customised O&M",
+   "source": "https://www.gevernova.com/news/press-releases/ge-vernova-secures-ivpc-group-contract-over-100-mw-fortore-wind-farm-italy"
+  },
+  {
+   "date": "2026-04-20",
+   "country": "Spain",
+   "customer": "Renovalia",
+   "size_mw": 91.5,
+   "platform": "GE6.1-158",
+   "turbines": 15,
+   "rotor_m": 158,
+   "mw_rating": 6.1,
+   "booked": "2025Q4",
+   "note": "Santa Maria de las Fuentes wind farm",
+   "source": "https://www.gevernova.com/news/press-releases/ge-vernova-supply-workhorse-wind-turbines-santa-maria-de-las-fuentes-spain"
+  },
+  {
+   "date": "2026-04-23",
+   "country": "Germany",
+   "customer": "BBWind and Greenvolt Power",
+   "size_mw": 71.5,
+   "platform": null,
+   "turbines": null,
+   "rotor_m": null,
+   "mw_rating": null,
+   "booked": "2025Q4",
+   "note": "Several projects; turbine model and count not stated; turbines built in Salzbergen",
+   "source": "https://www.gevernova.com/news/press-releases/ge-vernova-announces-new-wind-turbine-orders-bbwind-greenvolt-power-germany"
+  },
+  {
+   "date": "2026-06-04",
+   "country": "India",
+   "customer": "Powerica Limited",
+   "size_mw": 106.4,
+   "platform": "GE3.8-154",
+   "turbines": 28,
+   "rotor_m": 154,
+   "mw_rating": 3.8,
+   "booked": null,
+   "note": "Botad Wind Farm, Gujarat; debut of the 3.8 MW-154 in India (release headline: 100 MW project); deliveries from Q4 2026",
+   "source": "https://www.gevernova.com/news/press-releases/ge-vernova-deepens-india-commitment-38mw-workhorse-turbine-launch-powerica-order-allm-certification-pune-manufacturing"
+  },
+  {
+   "date": "2026-08-04",
+   "country": "India",
+   "customer": "Enfinity Global",
+   "size_mw": 163.4,
+   "platform": "GE3.8-154",
+   "turbines": 43,
+   "rotor_m": 154,
+   "mw_rating": 3.8,
+   "booked": null,
+   "note": "Fatehgarh Wind Farm, Rajasthan; supply and installation; deliveries from Q4 2026",
+   "source": "https://www.gevernova.com/news/press-releases/ge-vernova-expands-wind-footprint-india-1634-mw-order-enfinity-global-fatehgarh-wind-farm"
+  },
+  {
+   "date": "2026-09-03",
+   "country": "United Kingdom",
+   "customer": "ESB (Electricity Supply Board)",
+   "size_mw": 96.0,
+   "platform": "GE6.1-158",
+   "turbines": 16,
+   "rotor_m": 158,
+   "mw_rating": 6.1,
+   "booked": null,
+   "service_years": 20,
+   "note": "Chleansaid Wind Farm, Scottish Highlands; first 6 MW workhorse in the UK; 20-year services agreement",
+   "source": "https://www.gevernova.com/news/press-releases/ge-vernova-signs-agreement-supply-turbines-esbs-chleansaid-wind-farm-scotland"
+  },
+  {
+   "date": "2026-09-15",
+   "country": "Japan",
+   "customer": "Eurus Energy",
+   "size_mw": 29.4,
+   "platform": "GE4.2-117",
+   "turbines": 7,
+   "rotor_m": 117,
+   "mw_rating": 4.2,
+   "booked": "2026Q2",
+   "service_years": 2,
+   "note": "Hiyamizutouge Wind Farm, Aomori; two-year service agreement with a two-year extension option",
+   "source": "https://www.gevernova.com/news/press-releases/ge-vernova-supply-294-mw-wind-capacity-eurus-energys-hiyamizutouge-project-japan"
+  }
+ ]
+}

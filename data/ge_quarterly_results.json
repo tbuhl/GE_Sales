@@ -1,0 +1,115 @@
+{
+ "source": "GE Vernova quarterly earnings press releases (gevernova.com), Wind segment; USD million; calendar-year quarters",
+ "retrieved": "2026-10-13",
+ "notes": "Q4 2024 and later are as reported in the following year's release (comparatives). FY2024 orders in the workbook (7,100) and FY2025 (7,700) are rounded; the quarterly releases sum to 7,088 and 7,681. The workbook's FY2023 orders (13,203) differ from the 11,422 shown as the FY2023 comparative in the January 2025 release.",
+ "fy_totals": {
+  "2024": {
+   "orders_usd_m": 7088,
+   "revenue_usd_m": 9701,
+   "ebitda_usd_m": -588
+  },
+  "2025": {
+   "orders_usd_m": 7681,
+   "revenue_usd_m": 9110,
+   "ebitda_usd_m": -598
+  },
+  "2023": {
+   "orders_usd_m": 11422,
+   "revenue_usd_m": 9826,
+   "ebitda_usd_m": -1033
+  }
+ },
+ "guidance": {
+  "year": 2026,
+  "ebitda_usd_m": -400,
+  "revenue_note": "organic revenue down low double digits",
+  "as_of": "Q2 2026 results (22 July 2026); unchanged since Q4 2025 (January 2026)",
+  "revenue_decline_assumed": [
+   -0.13,
+   -0.1
+  ],
+  "revenue_decline_note": "'Low double digits' is read as a 10-13% organic decline for the arithmetic in the dashboard (an interpretation, not a company figure)"
+ },
+ "quarterly": [
+  {
+   "year": 2024,
+   "quarter": 1,
+   "orders_usd_m": 1150,
+   "revenue_usd_m": 1639,
+   "ebitda_usd_m": -173,
+   "note": ""
+  },
+  {
+   "year": 2024,
+   "quarter": 2,
+   "orders_usd_m": 2160,
+   "revenue_usd_m": 2062,
+   "ebitda_usd_m": -117,
+   "note": ""
+  },
+  {
+   "year": 2024,
+   "quarter": 3,
+   "orders_usd_m": 1747,
+   "revenue_usd_m": 2891,
+   "ebitda_usd_m": -317,
+   "note": "Revenue includes an approximately USD 0.5bn settlement on a previously cancelled offshore project; offshore contract losses of about USD 0.7bn"
+  },
+  {
+   "year": 2024,
+   "quarter": 4,
+   "orders_usd_m": 2031,
+   "revenue_usd_m": 3109,
+   "ebitda_usd_m": 19,
+   "note": ""
+  },
+  {
+   "year": 2025,
+   "quarter": 1,
+   "orders_usd_m": 640,
+   "revenue_usd_m": 1850,
+   "ebitda_usd_m": -146,
+   "note": ""
+  },
+  {
+   "year": 2025,
+   "quarter": 2,
+   "orders_usd_m": 2063,
+   "revenue_usd_m": 2245,
+   "ebitda_usd_m": -165,
+   "note": ""
+  },
+  {
+   "year": 2025,
+   "quarter": 3,
+   "orders_usd_m": 1833,
+   "revenue_usd_m": 2647,
+   "ebitda_usd_m": -61,
+   "note": "Orders up on higher onshore services; EBITDA loss narrowed to USD 61m as onshore equipment profitability, price and productivity improved (offset by tariffs)"
+  },
+  {
+   "year": 2025,
+   "quarter": 4,
+   "orders_usd_m": 3145,
+   "revenue_usd_m": 2368,
+   "ebitda_usd_m": -225,
+   "note": "Orders up 53% organically on onshore equipment outside North America; revenue down 24% on lower onshore equipment deliveries; EBITDA hurt by higher offshore contract losses"
+  },
+  {
+   "year": 2026,
+   "quarter": 1,
+   "orders_usd_m": 1199,
+   "revenue_usd_m": 1432,
+   "ebitda_usd_m": -382,
+   "note": "Orders up 85% organically on onshore equipment in North America off a low base; revenue down 23% on soft 2025 orders; EBITDA loss from lower equipment volume, tariffs and offshore contract losses"
+  },
+  {
+   "year": 2026,
+   "quarter": 2,
+   "orders_usd_m": 1249,
+   "revenue_usd_m": 2026,
+   "ebitda_usd_m": -275,
+   "note": "Orders down 40% organically on lower North American onshore equipment orders; revenue down 10% (fewer onshore equipment deliveries); SunZia became operational"
+  }
+ ]
+}
